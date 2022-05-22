@@ -1,0 +1,88 @@
+*, *::after, *::before{
+    box-sizing: border-box;
+    font-family: Tahoma;
+}
+
+:root{
+    --primary: #4A4453;
+    --secondary: #B0A8B9;
+    --accent: #825EC2;
+}
+
+body{
+    margin: 0;
+    padding: 0;
+}
+
+.container{
+    width: 100vw;
+    height: 100vh;
+}
+
+.scores{
+    width: 100%;
+    height: 10vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--secondary);
+}
+
+.visualScore{
+    width: 100%;
+    height: 5vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--accent);
+}
+
+.main{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+    height: 85vh;
+}
+
+.player1imgs,
+.player2imgs{
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    width: 50%;
+    height: 100%;
+    background-color: var(--primary);
+}
+
+.choiceImg{
+    width: 100%;
+    height: 15%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.choiceImg > img{
+    width: auto;
+    height: 100%;
+    object-fit: contain;
+}
+
+.reduceSize{
+    transform: scale(.5);
+}
+
+.fadeOut{
+    animation: fadeOut 0.3s forwards ease;
+}
+
+@keyframes fadeOut {
+    from{
+        opacity: 1;
+    }
+    to{
+        opacity: 0;
+    }
+}
