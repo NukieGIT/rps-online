@@ -25,6 +25,22 @@ http.listen(port, () => {
 })
 
 let rooms = [];
+const winningCombinations = [
+    [
+        "KeyR",
+        "KeyS"
+    ],
+    [
+        "KeyP",
+        "KeyR"
+    ],
+    [
+        "KeyS",
+        "KeyP"
+    ],
+
+];
+let winner = null;
 
 // create a new connection
 io.on("connection", socket => {
@@ -39,7 +55,7 @@ io.on("connection", socket => {
             // save created room
             const obj = {};
             obj["roomName"] = req.roomName;
-            obj["users"] = [req.socketID];
+            obj["users"] = [{username: req.socketID, choice: null}];
             rooms.push(obj);
             socket.join(req.roomName);
         } else {
@@ -58,7 +74,7 @@ io.on("connection", socket => {
                         done: true
                     })
                     // add user to room table
-                    e.users.push(req.socketID);
+                    e.users.push({username: req.socketID, choice: null});
                     socket.join(req.roomName);
                 } else {
                     socket.emit("error", `${req.roomName} is full!`)
@@ -73,16 +89,40 @@ io.on("connection", socket => {
     })
     // respond to client with his cureent room name
     socket.on("reqRoomName", (socketID, callback) => {
-        rooms.find(e => {
-            if (e.users.includes(socketID)) {
-                callback({
-                    "roomName": e.roomName
-                })
-            }
+        rooms.some(e1 => {
+            e1.users.find(e => {
+                if (e.username == socketID) {
+                    callback({
+                        "roomName": e1.roomName
+                    })
+                }
+            })
         })
     })
 
-    
+    socket.on("userChoice", (req) => {
+        rooms.some(e1 => {
+            if (e1.roomName == req.roomName) {
+                const user = req.socketID;
+                e1.users.find(e => {
+                    if (e.username == user) {
+                        e.choice = req.choice
+                    }
+                })
+            }
+        })
+        console.log(JSON.stringify(rooms, null, 4));
+    })
+
+
+    // function checkWin(users) {
+    //     return winningCombinations.some(combination => {
+    //         return combination.every(i => {
+    //             console.log(i);
+    //             // return [userChoices[users[0]], userChoices[users[1]]] == i
+    //         })
+    //     })
+    // }
 
     // handle new messages
     socket.on("newMsg", (msg) => {

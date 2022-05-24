@@ -8,6 +8,7 @@ const choiceImgClass = "choiceImg";
 const rockImg = "./client/rock1.png";
 const paperImg = "./client/paper1.png";
 const scissorsImg = "./client/scissors1.png";
+let p1Choice;
 
 socket.on("connect", () => {
     console.log(socket.id);
@@ -23,16 +24,31 @@ function start(e) {
     }
 }
 
-function handleKeyDown(e) {
+function handleKeyDown(e) { 
     console.log(e.code);
     e.preventDefault();
     if (e.code == "KeyR") {
+        p1Choice = e.code;
         addChoice(rockImg, player1imgs);
     }
-}
+    else if (e.code == "KeyP") {
+        p1Choice = e.code;
+        addChoice(paperImg, player1imgs);
+    }
+    else if (e.code == "KeyS") {
+        p1Choice = e.code;
+        addChoice(scissorsImg, player1imgs);
+    }
+};
 
 function addChoice(choice, player) {
-    if (player.children.length >= 5) {
+    const div = document.createElement("div");
+    const img = document.createElement("img");
+    div.classList.add(choiceImgClass);
+    img.src = choice;
+    div.append(img);
+    player.prepend(div);
+    if (player.children.length > 5) {
         let i = -1
         let lastElem = [...player.children].at(i);
         while(lastElem.classList.contains("fadeOut")) {
@@ -43,18 +59,30 @@ function addChoice(choice, player) {
         lastElem.addEventListener("animationend", removeElem);
         function removeElem() {
             lastElem.removeEventListener("animationend", removeElem);
-            lastElem.remove()
+            lastElem.remove();
         }
     }
-    const div = document.createElement("div");
-    const img = document.createElement("img");
-    div.classList.add(choiceImgClass);
-    img.src = choice;
-    div.append(img);
-    player.prepend(div);
-    // console.log([...player.children].at(-1));
+    if (player.children.length >= 1) {
+        const firstElem = [...player.children][0];
+        const lastElems = [...player.children];
+        lastElems.forEach((elem, i) => {
+            const computedStylePos = window.getComputedStyle(firstElem).height;
+            elem.style.top = (parseInt(computedStylePos) * i) + "px";
+            if (i == 0) return;
+            elem.style.transform = "scale(.6)";
+        })
+    }
+    emitChoice();
 }
 
+function emitChoice() {
+    const socketID = socket.id;
+    const choice = p1Choice;
+    socket.emit("reqRoomName", socketID, (callback) => {
+        const roomName = callback.roomName
+        socket.emit("userChoice", {socketID, roomName, choice});
+    })
+}
 
 // const messageForm = document.querySelector(".js-message");
 // const messageInput = document.querySelector("#js-messageInput");
