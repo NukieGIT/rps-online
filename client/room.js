@@ -10,8 +10,26 @@ const paperImg = "./client/paper1.png";
 const scissorsImg = "./client/scissors1.png";
 let p1Choice;
 
+const resultMap = {
+    "KeyR": rockImg,
+    "KeyP": paperImg,
+    "KeyS": scissorsImg
+}
+
+
 socket.on("connect", () => {
     console.log(socket.id);
+})
+
+socket.on("winnerResult", (res) => {
+    document.addEventListener("keydown", start)
+    if (res.user1.username == socket.id) {
+        console.log(res.user1.result);
+        addChoice(resultMap[res.user2.choice], player2imgs);
+    }else if (res.user2.username == socket.id) {
+        console.log(res.user2.result);
+        addChoice(resultMap[res.user1.choice], player2imgs);
+    }
 })
 
 document.addEventListener("keydown", start)
@@ -25,23 +43,26 @@ function start(e) {
 }
 
 function handleKeyDown(e) { 
-    console.log(e.code);
     e.preventDefault();
     if (e.code == "KeyR") {
         p1Choice = e.code;
         addChoice(rockImg, player1imgs);
+        emitChoice();
     }
     else if (e.code == "KeyP") {
         p1Choice = e.code;
         addChoice(paperImg, player1imgs);
+        emitChoice();
     }
     else if (e.code == "KeyS") {
         p1Choice = e.code;
         addChoice(scissorsImg, player1imgs);
+        emitChoice();
     }
 };
 
 function addChoice(choice, player) {
+    document.removeEventListener("keydown", handleKeyDown);
     const div = document.createElement("div");
     const img = document.createElement("img");
     div.classList.add(choiceImgClass);
@@ -72,7 +93,6 @@ function addChoice(choice, player) {
             elem.style.transform = "scale(.6)";
         })
     }
-    emitChoice();
 }
 
 function emitChoice() {

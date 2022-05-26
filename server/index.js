@@ -25,22 +25,17 @@ http.listen(port, () => {
 })
 
 let rooms = [];
-const winningCombinations = [
-    [
-        "KeyR",
-        "KeyS"
-    ],
-    [
-        "KeyP",
-        "KeyR"
-    ],
-    [
-        "KeyS",
-        "KeyP"
-    ],
-
+const possibleChoices = ["KeyR", "KeyP", "KeyS"];
+const combinations = [
+    ["t", "p2", "p1"],
+    ["p1", "t", "p2"],
+    ["p2", "p1", "t"]
 ];
-let winner = null;
+const resultMap = {
+    "t": "tie",
+    "p1": "You Win!",
+    "p2": "You Lose!"
+}
 
 // create a new connection
 io.on("connection", socket => {
@@ -55,7 +50,7 @@ io.on("connection", socket => {
             // save created room
             const obj = {};
             obj["roomName"] = req.roomName;
-            obj["users"] = [{username: req.socketID, choice: null}];
+            obj["users"] = [{username: req.socketID, choice: null, score: 0}];
             rooms.push(obj);
             socket.join(req.roomName);
         } else {
@@ -74,7 +69,7 @@ io.on("connection", socket => {
                         done: true
                     })
                     // add user to room table
-                    e.users.push({username: req.socketID, choice: null});
+                    e.users.push({username: req.socketID, choice: null, score: 0});
                     socket.join(req.roomName);
                 } else {
                     socket.emit("error", `${req.roomName} is full!`)
@@ -107,25 +102,55 @@ io.on("connection", socket => {
                 e1.users.find(e => {
                     if (e.username == user) {
                         e.choice = req.choice
+                        const room = e1;
+                        if (room.users.every(e => e.choice !== null)) {
+                            const users = room.users.map(e => e);
+                            io.to(req.roomName).emit("winnerResult", checkWin(user, users));
+                            users.forEach(elem => {
+                                elem.choice = null;
+                            });
+                        }
                     }
                 })
             }
         })
-        console.log(JSON.stringify(rooms, null, 4));
     })
+    
+    function checkWin(user, users) {
+        const user2 = users.filter(e => user !== e.username);
+        const user1 = users.filter(e => user2[0].username !== e.username);
+        const user1ChoiceIndex = possibleChoices.indexOf(user1[0].choice);
+        const user2ChoiceIndex = possibleChoices.indexOf(user2[0].choice);
+        const resultp1 = combinations[user1ChoiceIndex][user2ChoiceIndex];
+        const resultp2 = combinations[user2ChoiceIndex][user1ChoiceIndex];
+        updateScore(user, users, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex);
+        console.log(JSON.stringify(rooms, null, 4));
+        return {user1: {
+                username: user1[0].username,
+                result: resultMap[resultp1],
+                choice: user1[0].choice
+            },
+            user2: {
+                username: user2[0].username,
+                result: resultMap[resultp2],
+                choice: user2[0].choice
+            }
+        };
+    }
 
-
-    // function checkWin(users) {
-    //     return winningCombinations.some(combination => {
-    //         return combination.every(i => {
-    //             console.log(i);
-    //             // return [userChoices[users[0]], userChoices[users[1]]] == i
-    //         })
-    //     })
+    // function updateScore(user1, user2, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex) {
+    //     if (resultMap[user1ChoiceIndex] == "You Win!") {
+    //         user1.score++
+    //         return;
+    //     }
+    //     if (resultMap[user2ChoiceIndex] == "You Win!") {
+    //         user2.score++
+    //         return;
+    //     }
     // }
 
     // handle new messages
     socket.on("newMsg", (msg) => {
-        socket.broadcast.to(msg.roomName).emit("newMsg", `${msg.socketID}: ${msg.message}`);
+        io.broadcast.to(msg.roomName).emit("newMsg", `${msg.socketID}: ${msg.message}`);
     })
 })
