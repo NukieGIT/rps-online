@@ -9,6 +9,7 @@ const rockImg = "./client/rock1.png";
 const paperImg = "./client/paper1.png";
 const scissorsImg = "./client/scissors1.png";
 let p1Choice;
+let isUser1 = false;
 
 const resultMap = {
     "KeyR": rockImg,
@@ -23,12 +24,16 @@ socket.on("connect", () => {
 
 socket.on("winnerResult", (res) => {
     document.addEventListener("keydown", start)
-    if (res.user1.username == socket.id) {
+    if (res.user1.socketID == socket.id) {
+        isUser1 = true;
         console.log(res.user1.result);
         addChoice(resultMap[res.user2.choice], player2imgs);
-    }else if (res.user2.username == socket.id) {
+        updateScore(isUser1, res);
+    }else if (res.user2.socketID == socket.id) {
+        isUser1 = false;
         console.log(res.user2.result);
         addChoice(resultMap[res.user1.choice], player2imgs);
+        updateScore(isUser1, res);
     }
 })
 
@@ -87,12 +92,19 @@ function addChoice(choice, player) {
         const firstElem = [...player.children][0];
         const lastElems = [...player.children];
         lastElems.forEach((elem, i) => {
+            if (i == 0) return;
             const computedStylePos = window.getComputedStyle(firstElem).height;
             elem.style.top = (parseInt(computedStylePos) * i) + "px";
-            if (i == 0) return;
-            elem.style.transform = "scale(.6)";
+            elem.style.transform = "scale(.5)";
         })
     }
+}
+
+function updateScore(isUser1, res) {
+    const user = isUser1 ? p1Score : p2Score;
+    const secondUser = isUser1 ? p2Score : p1Score;
+    user.textContent = res.user1.score;
+    secondUser.textContent = res.user2.score;
 }
 
 function emitChoice() {

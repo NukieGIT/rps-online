@@ -50,7 +50,7 @@ io.on("connection", socket => {
             // save created room
             const obj = {};
             obj["roomName"] = req.roomName;
-            obj["users"] = [{username: req.socketID, choice: null, score: 0}];
+            obj["users"] = [{socketID: req.socketID, choice: null, score: 0}];
             rooms.push(obj);
             socket.join(req.roomName);
         } else {
@@ -69,7 +69,7 @@ io.on("connection", socket => {
                         done: true
                     })
                     // add user to room table
-                    e.users.push({username: req.socketID, choice: null, score: 0});
+                    e.users.push({socketID: req.socketID, choice: null, score: 0});
                     socket.join(req.roomName);
                 } else {
                     socket.emit("error", `${req.roomName} is full!`)
@@ -86,7 +86,7 @@ io.on("connection", socket => {
     socket.on("reqRoomName", (socketID, callback) => {
         rooms.some(e1 => {
             e1.users.find(e => {
-                if (e.username == socketID) {
+                if (e.socketID == socketID) {
                     callback({
                         "roomName": e1.roomName
                     })
@@ -100,7 +100,7 @@ io.on("connection", socket => {
             if (e1.roomName == req.roomName) {
                 const user = req.socketID;
                 e1.users.find(e => {
-                    if (e.username == user) {
+                    if (e.socketID == user) {
                         e.choice = req.choice
                         const room = e1;
                         if (room.users.every(e => e.choice !== null)) {
@@ -117,37 +117,35 @@ io.on("connection", socket => {
     })
     
     function checkWin(user, users) {
-        const user2 = users.filter(e => user !== e.username);
-        const user1 = users.filter(e => user2[0].username !== e.username);
+        const user2 = users.filter(e => user !== e.socketID);
+        const user1 = users.filter(e => user2[0].socketID !== e.socketID);
         const user1ChoiceIndex = possibleChoices.indexOf(user1[0].choice);
         const user2ChoiceIndex = possibleChoices.indexOf(user2[0].choice);
         const resultp1 = combinations[user1ChoiceIndex][user2ChoiceIndex];
         const resultp2 = combinations[user2ChoiceIndex][user1ChoiceIndex];
-        updateScore(user, users, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex);
-        console.log(JSON.stringify(rooms, null, 4));
+        updateScore(user1, user2, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex);
         return {user1: {
-                username: user1[0].username,
+                socketID: user1[0].socketID,
                 result: resultMap[resultp1],
-                choice: user1[0].choice
+                choice: user1[0].choice,
+                score: user1[0].score
             },
             user2: {
-                username: user2[0].username,
+                socketID: user2[0].socketID,
                 result: resultMap[resultp2],
-                choice: user2[0].choice
+                choice: user2[0].choice,
+                score: user2[0].score
             }
         };
     }
 
-    // function updateScore(user1, user2, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex) {
-    //     if (resultMap[user1ChoiceIndex] == "You Win!") {
-    //         user1.score++
-    //         return;
-    //     }
-    //     if (resultMap[user2ChoiceIndex] == "You Win!") {
-    //         user2.score++
-    //         return;
-    //     }
-    // }
+    function updateScore(user1, user2, resultp1, resultp2) {
+        if (resultMap[resultp1] == "You Win!") {
+            user1[0].score += 1;
+        } else if (resultMap[resultp2] == "You Win!") {
+            user2[0].score += 1;
+        }
+    }
 
     // handle new messages
     socket.on("newMsg", (msg) => {
