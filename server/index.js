@@ -123,7 +123,7 @@ io.on("connection", socket => {
         const user2ChoiceIndex = possibleChoices.indexOf(user2[0].choice);
         const resultp1 = combinations[user1ChoiceIndex][user2ChoiceIndex];
         const resultp2 = combinations[user2ChoiceIndex][user1ChoiceIndex];
-        updateScore(user1, user2, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex);
+        const shouldEnd = updateScore(user1, user2, resultp1, resultp2, user1ChoiceIndex, user2ChoiceIndex);
         return {user1: {
                 socketID: user1[0].socketID,
                 result: resultMap[resultp1],
@@ -135,6 +135,10 @@ io.on("connection", socket => {
                 result: resultMap[resultp2],
                 choice: user2[0].choice,
                 score: user2[0].score
+            },
+            state: {
+                finished: shouldEnd,
+                winner: user1[0].score == 3 ? user1[0].socketID : user2[0].socketID
             }
         };
     }
@@ -145,6 +149,10 @@ io.on("connection", socket => {
         } else if (resultMap[resultp2] == "You Win!") {
             user2[0].score += 1;
         }
+        if (user1[0].score == 3 || user2[0].score == 3) {
+            return true;
+        }
+        return false;
     }
 
     // handle new messages

@@ -7,6 +7,9 @@
     --primary: #4A4453;
     --secondary: #B0A8B9;
     --accent: #825EC2;
+    --win: #33ff00;
+    --lose: #ff0000;
+    --tie: #ffbb00;
 }
 
 body{
@@ -35,6 +38,7 @@ body{
     justify-content: center;
     align-items: center;
     background-color: var(--accent);
+    transition: background-color .3s ease;
 }
 
 .main{
@@ -74,14 +78,29 @@ body{
     width: auto;
     height: 100%;
     object-fit: contain;
+    transition: opacity .5s ease-in-out;
 }
 
 .reduceSize{
-    transform: scale(.5);
+    transform: scale(.1);
 }
 
 .fadeOut{
     animation: fadeOut 0.3s forwards ease;
+}
+
+.imgLost{
+    opacity: .5;
+}
+
+.roundWon{
+    background-color: var(--win);
+}
+.roundLost{
+    background-color: var(--lose);
+}
+.roundTied{
+    background-color: var(--tie);
 }
 
 @keyframes downwardsAnim {

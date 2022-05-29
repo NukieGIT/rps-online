@@ -4,12 +4,18 @@ const p2Username = document.querySelector(".js-usernameP2");
 const p2Score = document.querySelector(".js-scoreP2");
 const player1imgs = document.querySelector(".player1imgs");
 const player2imgs = document.querySelector(".player2imgs");
+const visualScore = document.querySelector(".visualScore");
 const choiceImgClass = "choiceImg";
+const winClass = "roundWon";
+const loseClass = "roundLost";
+const tieClass = "roundTied";
+const imgOpacityClass = "imgLost";
 const rockImg = "./client/rock1.png";
 const paperImg = "./client/paper1.png";
 const scissorsImg = "./client/scissors1.png";
 let p1Choice;
 let isUser1 = false;
+let imgChoice;
 
 const resultMap = {
     "KeyR": rockImg,
@@ -23,17 +29,30 @@ socket.on("connect", () => {
 })
 
 socket.on("winnerResult", (res) => {
-    document.addEventListener("keydown", start)
+    document.addEventListener("keydown", handleKeyDown);
     if (res.user1.socketID == socket.id) {
         isUser1 = true;
         console.log(res.user1.result);
-        addChoice(resultMap[res.user2.choice], player2imgs);
+        imgChoice.img1.src = resultMap[res.user2.choice];
+        lowerLoserOpacity(res.user1.result)
         updateScore(isUser1, res);
+        visualResult(res.user1.result);
     }else if (res.user2.socketID == socket.id) {
         isUser1 = false;
         console.log(res.user2.result);
-        addChoice(resultMap[res.user1.choice], player2imgs);
+        imgChoice.img1.src = resultMap[res.user1.choice];
+        lowerLoserOpacity(res.user2.result)
         updateScore(isUser1, res);
+        visualResult(res.user2.result);
+    }
+    if (res.state.finished) {
+        document.removeEventListener("keydown", handleKeyDown);
+        console.log("OVERALL WINNER:", res.state.winner);
+        if (res.state.winner == socket.id) {
+            console.log("YOU WON!!!11!111");
+        } else {
+            console.log("YOU LOST!!!11!111");
+        }
     }
 })
 
@@ -51,53 +70,59 @@ function handleKeyDown(e) {
     e.preventDefault();
     if (e.code == "KeyR") {
         p1Choice = e.code;
-        addChoice(rockImg, player1imgs);
+        imgChoice = addChoice();
+        imgChoice.img0.src = rockImg;
         emitChoice();
     }
     else if (e.code == "KeyP") {
         p1Choice = e.code;
-        addChoice(paperImg, player1imgs);
+        imgChoice = addChoice();
+        imgChoice.img0.src = paperImg;
         emitChoice();
     }
     else if (e.code == "KeyS") {
         p1Choice = e.code;
-        addChoice(scissorsImg, player1imgs);
+        imgChoice = addChoice();
+        imgChoice.img0.src = scissorsImg;
         emitChoice();
     }
 };
 
-function addChoice(choice, player) {
-    document.removeEventListener("keydown", handleKeyDown);
-    const div = document.createElement("div");
-    const img = document.createElement("img");
-    div.classList.add(choiceImgClass);
-    img.src = choice;
-    div.append(img);
-    player.prepend(div);
-    if (player.children.length > 5) {
-        let i = -1
-        let lastElem = [...player.children].at(i);
-        while(lastElem.classList.contains("fadeOut")) {
-            i--;
-            lastElem = [...player.children].at(i);
+function addChoice() {
+    let obj = {};
+    [player1imgs, player2imgs].forEach((elem1, i) => {
+        const div = document.createElement("div");
+        const img = document.createElement("img");
+        div.classList.add(choiceImgClass);
+        div.append(img);
+        elem1.prepend(div);
+        if (elem1.children.length > 5) {
+            let i = -1
+            let lastElem = [...elem1.children].at(i);
+            while(lastElem.classList.contains("fadeOut")) {
+                i--;
+                lastElem = [...elem1.children].at(i);
+            }
+            lastElem.classList.add("fadeOut");
+            lastElem.addEventListener("animationend", removeElem);
+            function removeElem() {
+                lastElem.removeEventListener("animationend", removeElem);
+                lastElem.remove();
+            }
         }
-        lastElem.classList.add("fadeOut");
-        lastElem.addEventListener("animationend", removeElem);
-        function removeElem() {
-            lastElem.removeEventListener("animationend", removeElem);
-            lastElem.remove();
+        if (elem1.children.length >= 1) {
+            const firstElem = [...elem1.children][0];
+            const lastElems = [...elem1.children];
+            lastElems.forEach((elem, i) => {
+                if (i == 0) return;
+                const computedStylePos = window.getComputedStyle(firstElem).height;
+                elem.style.top = (parseInt(computedStylePos) * i) + "px";
+                elem.style.transform = "scale(.5)";
+            })
         }
-    }
-    if (player.children.length >= 1) {
-        const firstElem = [...player.children][0];
-        const lastElems = [...player.children];
-        lastElems.forEach((elem, i) => {
-            if (i == 0) return;
-            const computedStylePos = window.getComputedStyle(firstElem).height;
-            elem.style.top = (parseInt(computedStylePos) * i) + "px";
-            elem.style.transform = "scale(.5)";
-        })
-    }
+        obj[`img${i}`] = img;
+    })
+    return obj;
 }
 
 function updateScore(isUser1, res) {
@@ -108,6 +133,7 @@ function updateScore(isUser1, res) {
 }
 
 function emitChoice() {
+    document.removeEventListener("keydown", handleKeyDown);
     const socketID = socket.id;
     const choice = p1Choice;
     socket.emit("reqRoomName", socketID, (callback) => {
@@ -116,6 +142,25 @@ function emitChoice() {
     })
 }
 
+function visualResult(viResult) {
+     visualScore.classList.remove(winClass, loseClass, tieClass); 
+    if (viResult == "You Win!") {
+        visualScore.classList.add(winClass);
+    } else if(viResult == "You Lose!"){
+        visualScore.classList.add(loseClass);
+    }else if(viResult == "tie"){
+        visualScore.classList.add(tieClass);
+    }
+}
+
+function lowerLoserOpacity(userResult) {
+    if (userResult == "tie") return;
+    if (userResult == "You Lose!") {
+        imgChoice.img0.classList.add(imgOpacityClass);
+    } else {
+        imgChoice.img1.classList.add(imgOpacityClass);
+    }
+}
 // const messageForm = document.querySelector(".js-message");
 // const messageInput = document.querySelector("#js-messageInput");
 // const msgsContainer = document.querySelector(".js-msgsContainer");
