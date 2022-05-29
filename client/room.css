@@ -103,6 +103,13 @@ body{
     background-color: var(--tie);
 }
 
+.slideToRight{
+    animation: slideInRight .5s forwards;
+}
+.slideToLeft{
+    animation: slideInLeft .5s forwards;
+}
+
 @keyframes downwardsAnim {
     from{
         top: 0;
@@ -118,5 +125,22 @@ body{
     }
     to{
         opacity: 0;
+    }
+}
+
+@keyframes slideInLeft {
+    from{
+        transform: translateX(200vw);
+    }
+    to{
+        transform: translateX(0);
+    }
+}
+@keyframes slideInRight {
+    from{
+        transform: translateX(-200vw);
+    }
+    to{
+        transform: translateX(0);
     }
 }

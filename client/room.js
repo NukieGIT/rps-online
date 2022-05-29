@@ -10,6 +10,8 @@ const winClass = "roundWon";
 const loseClass = "roundLost";
 const tieClass = "roundTied";
 const imgOpacityClass = "imgLost";
+const slideToRightClass = "slideToRight";
+const slideToLeftClass = "slideToLeft";
 const rockImg = "./client/rock1.png";
 const paperImg = "./client/paper1.png";
 const scissorsImg = "./client/scissors1.png";
@@ -34,14 +36,16 @@ socket.on("winnerResult", (res) => {
         isUser1 = true;
         console.log(res.user1.result);
         imgChoice.img1.src = resultMap[res.user2.choice];
-        lowerLoserOpacity(res.user1.result)
+        firstElemSlideIn(imgChoice.img1, slideToLeftClass);
+        lowerLoserOpacity(res.user1.result);
         updateScore(isUser1, res);
         visualResult(res.user1.result);
     }else if (res.user2.socketID == socket.id) {
         isUser1 = false;
         console.log(res.user2.result);
         imgChoice.img1.src = resultMap[res.user1.choice];
-        lowerLoserOpacity(res.user2.result)
+        firstElemSlideIn(imgChoice.img1, slideToLeftClass);
+        lowerLoserOpacity(res.user2.result);
         updateScore(isUser1, res);
         visualResult(res.user2.result);
     }
@@ -72,18 +76,21 @@ function handleKeyDown(e) {
         p1Choice = e.code;
         imgChoice = addChoice();
         imgChoice.img0.src = rockImg;
+        firstElemSlideIn(imgChoice.img0, slideToRightClass);
         emitChoice();
     }
     else if (e.code == "KeyP") {
         p1Choice = e.code;
         imgChoice = addChoice();
         imgChoice.img0.src = paperImg;
+        firstElemSlideIn(imgChoice.img0, slideToRightClass);
         emitChoice();
     }
     else if (e.code == "KeyS") {
         p1Choice = e.code;
         imgChoice = addChoice();
         imgChoice.img0.src = scissorsImg;
+        firstElemSlideIn(imgChoice.img0, slideToRightClass);
         emitChoice();
     }
 };
@@ -160,6 +167,10 @@ function lowerLoserOpacity(userResult) {
     } else {
         imgChoice.img1.classList.add(imgOpacityClass);
     }
+}
+
+function firstElemSlideIn(elem, animClass) {
+    elem.classList.add(animClass)
 }
 // const messageForm = document.querySelector(".js-message");
 // const messageInput = document.querySelector("#js-messageInput");
