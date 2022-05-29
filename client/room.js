@@ -76,6 +76,7 @@ function handleKeyDown(e) {
         p1Choice = e.code;
         imgChoice = addChoice();
         imgChoice.img0.src = rockImg;
+        visualScore.classList.remove(winClass, loseClass, tieClass);
         firstElemSlideIn(imgChoice.img0, slideToRightClass);
         emitChoice();
     }
@@ -83,6 +84,7 @@ function handleKeyDown(e) {
         p1Choice = e.code;
         imgChoice = addChoice();
         imgChoice.img0.src = paperImg;
+        visualScore.classList.remove(winClass, loseClass, tieClass);
         firstElemSlideIn(imgChoice.img0, slideToRightClass);
         emitChoice();
     }
@@ -90,6 +92,7 @@ function handleKeyDown(e) {
         p1Choice = e.code;
         imgChoice = addChoice();
         imgChoice.img0.src = scissorsImg;
+        visualScore.classList.remove(winClass, loseClass, tieClass);
         firstElemSlideIn(imgChoice.img0, slideToRightClass);
         emitChoice();
     }
@@ -150,7 +153,7 @@ function emitChoice() {
 }
 
 function visualResult(viResult) {
-     visualScore.classList.remove(winClass, loseClass, tieClass); 
+     visualScore.classList.remove(winClass, loseClass, tieClass);
     if (viResult == "You Win!") {
         visualScore.classList.add(winClass);
     } else if(viResult == "You Lose!"){

@@ -39,7 +39,7 @@ function loadRoom(url) {
         document.write(data)
         const script = document.createElement("script");
         document.head.appendChild(script);
-        script.src = "./client/room.js"
+        script.src = "./client/room.js";
         const style = document.createElement("link")
         document.head.appendChild(style);
         style.rel = "stylesheet";
